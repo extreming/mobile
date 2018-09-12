@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>video实现相机取景框</title>
+    <script>
+    let html = document.documentElement,
+        resizeEvt = 'orientationchange' in window ? 'orientationchange' : 'resize',
+        recalc = () => {
+            html.style.fontSize = 20 * (html.clientWidth / 375) + 'px';
+            console.log(html.style.fontSize);
+        }
+    window.addEventListener(resizeEvt, recalc, false);
+    document.addEventListener('DOMContentLoaded', recalc, false);
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        button {
+            width: 16rem;
+            height: 2.5rem;
+            display: block;
+            margin: 10px auto;
+            background: #D93025;
+            border-radius: .2rem;
+            border: none;
+            font-size: 1.6rem;
+            color: #fff;
+            letter-spacing: 1rem;
+        }
+        video {
+            width: 100%;
+            height: 20rem;
+        }
+        .container {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20rem;
+            overflow: hidden;
+        }
+        .layer {
+            width: 100%;
+            height: 100%;
+            box-sizing: border-box;
+            border: 99px solid rgba(0, 0, 0, .8);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        canvas {
+            width: 100%;
+            height: 20rem;
+        }
+    </style>
+</head>
+<body>
+    <p>仅支持PC端</p>
+
+    <div class="container">
+        <div class="layer"></div>
+        <video id="video" autoplay></video>
+    </div>
+
+    <button id="btn">拍照</button>
+
+    <canvas id="canvas" width="400" height="400"></canvas>
+
+    <script>
+        function getUserMedia(constraints, success, error) {
+            if (navigator.mediaDevices.getUserMedia) {
+                //  最新api
+                navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
+            } else if (navigator.webkitGetUserMedia) {
+                //  webkit核心浏览器
+                navigator.webkitGetUserMedia(constraints, success, error);
+            } else if (navigator.mozGetUserMedia) {
+                //firfox浏览器
+                navigator.mozGetUserMedia(constraints, success, error);
+            } else if (navigator.getUserMedia) {
+                //旧版API
+                navigator.getUserMedia(constraints, success, error);
+            }
+        }
+
+        let video = document.querySelector('#video'),
+            canvas = document.querySelector('#canvas'),
+            ctx = canvas.getContext('2d'),
+            btn = document.querySelector('#btn');
+
+        function success(stream) {
+            //兼容webkit核心浏览器
+            let videoUrl = window.URL || window.webkitURL;
+            //将视频流设置为video元素的源
+            video.srcObject = stream;
+            video.play();
+        }
+
+        function error(error) {
+            console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+        }
+        
+        getUserMedia({video : {width: 400, height: 400}}, success, error);
+        
+        function capture() {
+            ctx.drawImage(video, 0, 0, 400, 400);
+        }
+
+        btn.addEventListener('click', capture, false);
+    </script>
+</body>
+</html>
